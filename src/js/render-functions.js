@@ -1,51 +1,54 @@
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
+// Описаний у документації
+import SimpleLightbox from "simplelightbox";
+// Додатковий імпорт стилів
+import "simplelightbox/dist/simple-lightbox.min.css";
 
-export function createGallery(images) {
-  return images
-    .map(
-      ({
-        id,
-        webformatURL,
-        largeImageURL,
-        tags,
-        likes,
-        views,
-        comments,
-        downloads,
-      }) => `
-    <li class="list-item" data-id="${id}">
-      <a href="${largeImageURL}">
-        <img class="image" src="${webformatURL}" alt="${tags}" width="360" />
-      </a>
-      <ul class="info">
-        <li><h3>Likes</h3><p class="info-text">${likes}</p></li>
-        <li><h3>Views</h3><p class="info-text">${views}</p></li>
-        <li><h3>Comments</h3><p class="info-text">${comments}</p></li>
-        <li><h3>Downloads</h3><p class="info-text">${downloads}</p></li>
-      </ul>
-    </li>
-    `
-    )
-    .join('');
+const loader = document.querySelector(".loader");
+const gallery = document.querySelector(".gallery")
+const lightbox = new SimpleLightbox('.gallery a', {
+    captionDelay: 250, 
+    captionPosition: 'bottom', 
+    captionsData: 'alt'});
+
+export default function createGallery(images) {
+    const createMarkup = images.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => `
+    <li class="image-box">
+        <a href="${largeImageURL}">
+        <img src="${webformatURL}" alt="${tags}" width="300">
+        </a>
+        <div class="image-stats">
+            <div class="image-stat">
+                <span class="label">Likes</span>
+                <span class="value">${likes}</span>
+            </div>
+            <div class="image-stat">
+                <span class="label">Views</span>
+                <span class="value">${views}</span>
+            </div>
+            <div class="image-stat">
+                <span class="label">Comments</span>
+                <span class="value">${comments}</span>
+            </div>
+            <div class="image-stat">
+                <span class="label">Downloads</span>
+                <span class="value">${downloads}</span>
+            </div>
+        </div>
+    </li>`).join("");
+
+    gallery.innerHTML = createMarkup;
+    lightbox.refresh()
+};
+
+export function clearGallery() {
+    gallery.innerHTML = "";
 }
 
-export function renderGallery(images) {
-  const gallery = document.querySelector('.gallery');
-  gallery.innerHTML = createGallery(images);
-
-  const lightbox = new SimpleLightbox('.gallery a', {
-    captionsData: 'alt',
-    captionDelay: 250,
-  });
-
-  lightbox.refresh();
-}
-
-const loader = document.querySelector('.loader');
 export function showLoader() {
-  loader.style.display = 'block';
+    loader.classList.remove("hidden");
 }
+
 export function hideLoader() {
-  loader.style.display = 'none';
+    loader.classList.add("hidden");
 }
+

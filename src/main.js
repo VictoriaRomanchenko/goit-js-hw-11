@@ -1,56 +1,40 @@
-import axios from 'axios';
-import iziToast from 'izitoast';
-import 'izitoast/dist/css/iziToast.min.css';
+import getImagesByQuery from "./js/pixabay-api";
+import createGallery, { clearGallery, showLoader, hideLoader } from "./js/render-functions";
+import iziToast from "izitoast";
+// Додатковий імпорт стилів
+import "izitoast/dist/css/iziToast.min.css";
 
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
+const form = document.querySelector(".form");
 
-import { fetchImages } from './js/pixabay-api';
-import { renderGallery, showLoader, hideLoader } from './js/render-functions';
+form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const q = event.target.elements['search-text'].value.trim();
+    if (q === "") {
+        iziToast.error({
+                    message: "Please, fill in the field!",
+                    closeOnClick: true,
+                    position: "topRight",
+                });
+        
+        return;
+    }
+    clearGallery()
+    showLoader()
+    getImagesByQuery(q)
+        .then(response => {
+            if (!response.hits.length) {
+                iziToast.error({
+                    message: "Sorry, there are no images matching your search query. Please try again!",
+                    closeOnClick: true,
+                    position: "topRight",
+                })
+                return;
+            }
+            createGallery(response.hits);
+        })
+        .catch(error => iziToast.error({
+            message: `${error}`
+        }))
+        .finally(() => hideLoader())
 
-const form = document.querySelector('.form');
-const gallery = document.querySelector('.gallery');
-
-form.addEventListener('submit', handleSubmit);
-
-function handleSubmit(event) {
-  event.preventDefault();
-
-  const inputValue = form.elements['search-text'].value.trim();
-
-  if (inputValue === '') {
-    iziToast.warning({
-      message: 'Введіть назву зображення!',
-      position: 'topRight',
-    });
-    return;
-  }
-  showLoader();
-  fetchImages(inputValue)
-    .then(response => {
-      const images = response.data.hits;
-
-      if (images.length === 0) {
-        gallery.innerHTML = '';
-        iziToast.info({
-          message: 'Зображень не знайдено.',
-          position: 'topRight',
-        });
-      } else {
-        console.log(images);
-        renderGallery(images);
-      }
-
-      form.reset();
-    })
-    .catch(error => {
-      iziToast.error({
-        message: 'Сталася помилка при запиті!',
-        position: 'topRight',
-      });
-      console.error('Помилка:', error);
-    })
-    .finally(() => {
-      hideLoader();
-    });
-}
+})
